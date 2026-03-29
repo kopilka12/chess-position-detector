@@ -17,7 +17,7 @@ class ChessApp:
         self.analyzer = ChessPositionAnalyzer() if generate_txt else None
         self.viewer = BoardViewer() if show else None
         
-        self.last_fens = None  # Для отслеживания изменений позиции
+        self.last_fens = None
 
     def _is_video(self):
         video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv', '.webm', '.mpeg', '.mpg']
@@ -28,11 +28,9 @@ class ChessApp:
             if self.split:
                 print("Error: --split is not supported for video files.")
                 return
-            # self.show is now allowed for videos
             self._process_video()
             return
 
-        # Обработка изображений и PDF
         print(f"Loading document: {self.file_path}...")
         try:
             pages_cv = load_document(self.file_path)
@@ -63,7 +61,6 @@ class ChessApp:
                 self._slice_and_save_boards(img, boards, page_num=i+1)
                 
             if self.generate_txt and self.analyzer:
-                # Для PDF/фото тоже применяем логику исключения повторов, если нужно
                 self._analyze_and_save_data(img, boards, page_num=i+1)
 
         if self.split:
@@ -128,7 +125,6 @@ class ChessApp:
             
         if self.show and self.viewer and frames_to_show:
             self.viewer.display_video_frames(frames_to_show, self.detector)
-            # Clear frames from memory after showing
             frames_to_show.clear()
         elif self.show and not frames_to_show:
             print("No boards detected in the video to show.")
@@ -152,7 +148,6 @@ class ChessApp:
         if not current_fens:
             return False
 
-        # Проверяем, изменилась ли позиция
         if current_fens == self.last_fens:
             return False
             
@@ -210,10 +205,6 @@ class ChessApp:
                     'x': x, 'y': y, 'w': bw, 'h': bh,
                     'fen': fen
                 })
-
-        # Для PDF тоже можно добавить пропуск дубликатов, если нужно
-        # Но здесь формат вывода другой (с координатами), поэтому пишем всегда, 
-        # если только вы явно не попросите иное.
         
         with open(output_filename, "a", encoding="utf-8") as f:
             if page_num is not None:
