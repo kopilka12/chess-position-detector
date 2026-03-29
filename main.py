@@ -6,7 +6,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 def main():
     parser = argparse.ArgumentParser(description='Chessboard Detection and Analysis Tool (OOP Version)')
-    parser.add_argument('path', type=str, help='Path to the file (PDF or image)')
+    parser.add_argument('path', type=str, help='Path to the file (PDF, image, or video)')
     parser.add_argument('--show', action='store_true', help='Show visualization')
     parser.add_argument('--split', action='store_true', help='Cut the detected boards into squares and save them in the split folder')
     parser.add_argument('--txt', action='store_true', help='Save detected board data')
