@@ -1,8 +1,10 @@
-import argparse
-from app import ChessApp
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+import argparse
+from app import ChessApp
 
 def main():
     parser = argparse.ArgumentParser(description='Chessboard Detection and Analysis Tool (OOP Version)')

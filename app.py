@@ -78,13 +78,7 @@ class ChessApp:
             print(f"Error: Could not open video {self.file_path}")
             return
 
-        fps = cap.get(cv2.CAP_PROP_FPS)
-        if fps <= 0:
-            fps = 30.0
-
-        interval_frames = int(fps * 0.2)
-        if interval_frames == 0:
-            interval_frames = 1
+        interval_frames = 2
 
         if self.generate_txt and self.analyzer:
             if not self.analyzer.load_resources():
