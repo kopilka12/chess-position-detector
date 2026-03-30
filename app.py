@@ -82,7 +82,7 @@ class ChessApp:
         if fps <= 0:
             fps = 30.0
 
-        interval_frames = int(fps * 0.5)
+        interval_frames = int(fps * 0.2)
         if interval_frames == 0:
             interval_frames = 1
 
@@ -131,10 +131,11 @@ class ChessApp:
 
     def _format_time(self, milliseconds):
         seconds = int(milliseconds // 1000)
+        ms = int(milliseconds % 1000)
         hh = seconds // 3600
         mm = (seconds % 3600) // 60
         ss = seconds % 60
-        return f"{hh:02d}:{mm:02d}:{ss:02d}"
+        return f"{hh:02d}:{mm:02d}:{ss:02d}:{ms:03d}"
 
     def _analyze_and_save_video_data(self, img, boards, timestamp_str, output_filename="boards_data.txt"):
         current_fens = []
