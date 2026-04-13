@@ -4,3 +4,4 @@ split/
 testdata/
 boards_data.txt
 train_model.py
+predictions.log

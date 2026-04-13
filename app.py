@@ -78,7 +78,7 @@ class ChessApp:
             print(f"Error: Could not open video {self.file_path}")
             return
 
-        interval_frames = 2
+        interval_frames = 1
 
         if self.generate_txt and self.analyzer:
             if not self.analyzer.load_resources():
@@ -105,6 +105,9 @@ class ChessApp:
                         is_changed = self._analyze_and_save_video_data(frame, boards, timestamp_str)
                         if is_changed:
                             print(f"[{timestamp_str}] Position changed. Saved.")
+                        else:
+                            # Add debug output if position hasn't changed
+                            pass
                     
                     if self.show and is_changed:
                         frames_to_show.append((frame.copy(), timestamp_str))
@@ -136,7 +139,8 @@ class ChessApp:
         for board in boards:
             warped = warp_board(img, board)
             if warped is not None:
-                fen = self.analyzer.predict_fen(warped)
+                # For video, keep strict check (strict=True)
+                fen = self.analyzer.predict_fen(warped, timestamp=timestamp_str, strict=True)
                 if fen:
                     current_fens.append(fen)
         
@@ -191,7 +195,9 @@ class ChessApp:
             if warped is None:
                 continue
             
-            fen = self.analyzer.predict_fen(warped)
+            timestamp = f"Page {page_num}" if page_num else None
+            # For images and PDF, disable strict check (strict=False)
+            fen = self.analyzer.predict_fen(warped, timestamp=timestamp, strict=False)
             if fen:
                 current_fens.append(fen)
                 x, y, bw, bh = cv2.boundingRect(board)

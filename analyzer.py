@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import tensorflow as tf
+from datetime import datetime
 
 class ChessPositionAnalyzer:
     def __init__(self, model_path="chess_piece_model.keras", classes_path="classes.txt"):
@@ -30,7 +31,7 @@ class ChessPositionAnalyzer:
             print(f"Model loading error: {e}")
             return False
 
-    def predict_fen(self, warped_board):
+    def predict_fen(self, warped_board, timestamp=None, strict=True):
         if not self.is_loaded and not self.load_resources():
             return None
 
@@ -56,9 +57,38 @@ class ChessPositionAnalyzer:
         
         batch = np.array(cells)
         predictions = self.model.predict(batch, verbose=0)
+        
+        # Log probabilities using the provided timestamp
+        self._log_predictions(predictions, timestamp)
+        
+        # Use confidence threshold for video (strict=True)
+        if strict:
+            threshold = 0.89
+            confidences = np.max(predictions, axis=1)
+            min_conf = np.min(confidences)
+            
+            if min_conf < threshold:
+                print(f"Low confidence detected: {min_conf:.4f}")
+                return "intermediate"
+            
         class_indices = np.argmax(predictions, axis=1)
         
         return self._get_fen_from_predictions(class_indices)
+
+    def _log_predictions(self, predictions, timestamp=None):
+        if timestamp is None:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+        try:
+            with open("predictions.log", "a", encoding="utf-8") as f:
+                f.write(f"\n--- Prediction at [{timestamp}] ---\n")
+                for i, prob_vec in enumerate(predictions):
+                    row, col = i // 8, i % 8
+                    cell_name = f"{chr(ord('a')+col)}{8-row}"
+                    probs_str = ", ".join([f"{self.class_names[j]}: {prob_vec[j]:.4f}" for j in range(len(self.class_names))])
+                    f.write(f"Cell {cell_name}: {probs_str}\n")
+        except Exception as e:
+            print(f"Logging error: {e}")
 
     def _get_fen_from_predictions(self, class_indices):
         fen_rows = []
