@@ -14,7 +14,7 @@ class ChessApp:
         self.generate_txt = generate_txt
         
         self.detector = ChessboardDetector()
-        self.analyzer = ChessPositionAnalyzer() if generate_txt else None
+        self.analyzer = ChessPositionAnalyzer() if (generate_txt or show) else None
         self.viewer = BoardViewer() if show else None
         
         self.last_fens = None
@@ -42,11 +42,12 @@ class ChessApp:
             print("Error: No images loaded from the document.")
             return
 
-        if self.generate_txt and self.analyzer:
+        if (self.generate_txt or self.show) and self.analyzer:
             if not self.analyzer.load_resources():
                 return
-            with open("boards_data.txt", "w", encoding="utf-8") as f:
-                f.write(f"{'='*40}\n" f"File: {self.file_path}\n" f"{'='*40}\n\n")
+            if self.generate_txt:
+                with open("boards_data.txt", "w", encoding="utf-8") as f:
+                    f.write(f"{'='*40}\n" f"File: {self.file_path}\n" f"{'='*40}\n\n")
 
         for i, img in enumerate(pages_cv):
             boards = self.detector.detect_boards(img)
@@ -69,7 +70,7 @@ class ChessApp:
             print("Data saved in 'boards_data.txt'!")
 
         if self.show and self.viewer:
-            self.viewer.display_interactive(pages_cv, self.detector)
+            self.viewer.display_interactive(pages_cv, self.detector, self.analyzer)
 
     def _process_video(self):
         print(f"Processing video: {self.file_path}...")
@@ -80,12 +81,13 @@ class ChessApp:
 
         interval_frames = 1
 
-        if self.generate_txt and self.analyzer:
+        if (self.generate_txt or self.show) and self.analyzer:
             if not self.analyzer.load_resources():
                 cap.release()
                 return
-            with open("boards_data.txt", "w", encoding="utf-8") as f:
-                f.write(f"{'='*40}\n" f"File: {self.file_path}\n" f"{'='*40}\n\n")
+            if self.generate_txt:
+                with open("boards_data.txt", "w", encoding="utf-8") as f:
+                    f.write(f"{'='*40}\n" f"File: {self.file_path}\n" f"{'='*40}\n\n")
 
         frames_to_show = []
         frame_count = 0
@@ -101,16 +103,14 @@ class ChessApp:
                 boards = self.detector.detect_boards(frame)
                 if boards:
                     is_changed = True
-                    if self.generate_txt and self.analyzer:
-                        is_changed = self._analyze_and_save_video_data(frame, boards, timestamp_str)
+                    current_fens = []
+                    if self.analyzer:
+                        is_changed, current_fens = self._analyze_and_save_video_data(frame, boards, timestamp_str)
                         if is_changed:
-                            print(f"[{timestamp_str}] Position changed. Saved.")
-                        else:
-                            # Add debug output if position hasn't changed
-                            pass
+                            print(f"[{timestamp_str}] Position changed. Saved." if self.generate_txt else f"[{timestamp_str}] Position changed.")
                     
                     if self.show and is_changed:
-                        frames_to_show.append((frame.copy(), timestamp_str))
+                        frames_to_show.append((frame.copy(), timestamp_str, current_fens))
                 else:
                     self.last_fens = None
 
@@ -145,16 +145,17 @@ class ChessApp:
                     current_fens.append(fen)
         
         if not current_fens:
-            return False
+            return False, []
 
         if current_fens == self.last_fens:
-            return False
+            return False, current_fens
             
         self.last_fens = current_fens
-        with open(output_filename, "a", encoding="utf-8") as f:
-            for fen in current_fens:
-                f.write(f"[{timestamp_str}] - {fen}\n")
-        return True
+        if self.generate_txt:
+            with open(output_filename, "a", encoding="utf-8") as f:
+                for fen in current_fens:
+                    f.write(f"[{timestamp_str}] - {fen}\n")
+        return True, current_fens
 
     def _slice_and_save_boards(self, img, boards, page_num, output_dir="split"):
         if not os.path.exists(output_dir):
