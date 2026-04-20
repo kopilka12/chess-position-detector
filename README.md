@@ -65,14 +65,3 @@ python main.py videos/gameplay.mp4 --show
 ```bash
 python main.py photo.png --split
 ```
-
-## Project Structure
-
-- `main.py`: Entry point for the CLI application.
-- `app.py`: Main application logic and orchestration.
-- `detector.py`: Chessboard detection algorithms (OpenCV).
-- `analyzer.py`: FEN prediction logic using the Keras model.
-- `viewer.py`: Visualization and interaction tools.
-- `utils.py`: Image processing and PDF loading utilities.
-- `chess_piece_model.keras`: Pre-trained deep learning model for piece classification.
-- `classes.txt`: Label mapping for the piece classifier.
