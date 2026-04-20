@@ -190,9 +190,9 @@ class ChessboardDetector:
             text_y = y - 10 if y > 25 else y + 25
             
             cv2.putText(output, text, (text_x, text_y), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 4)
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 5)
             
             cv2.putText(output, text, (text_x, text_y), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
             
         return output
