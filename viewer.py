@@ -37,6 +37,11 @@ class BoardViewer:
         last_page = -1
         processed_img = None
 
+        print("\nNavigation:")
+        print("  <- / A   : Previous page")
+        print("  -> / D   : Next page")
+        print("    ESC    : Exit\n")
+
         while True:
             if current_page != last_page:
                 img = pages[current_page].copy()
@@ -49,7 +54,7 @@ class BoardViewer:
                         warped = warp_board(img, board)
                         if warped is not None:
                             fen = analyzer.predict_fen(warped, strict=False)
-                            if fen: info_lines.append(f"Board {idx+1} FEN: {fen}")
+                            if fen: info_lines.append(f"Board {idx+1}: {fen}")
 
                 y_offset = 40
                 for line in info_lines:
@@ -90,7 +95,7 @@ class BoardViewer:
                 info_lines = [f"Pos: {current_idx + 1}/{total_frames} | Time: [{timestamp}]"]
                 if fens:
                     for idx, fen in enumerate(fens):
-                        info_lines.append(f"Board {idx+1} FEN: {fen}")
+                        info_lines.append(f"Board {idx+1}: {fen}")
 
                 y_offset = 40
                 for line in info_lines:
