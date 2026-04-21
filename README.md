@@ -46,7 +46,7 @@ python main.py path/to/your/file.jpg
 | Flag | Description |
 |------|-------------|
 | `--show` | Show interactive visualization of detected boards. |
-| `--txt` | Analyze positions and save FEN data to `boards_data.txt`. |
+| `--txt` | Analyze positions and save FEN data to a file. Defaults to `boards_data.txt` if no filename is provided. Example: `--txt custom_output.txt` |
 | `--split` | Cut detected boards into 64 squares and save them in the `/split` folder. |
 
 ### Examples

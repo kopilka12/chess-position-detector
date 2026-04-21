@@ -1,12 +1,15 @@
+import os
 import numpy as np
 import cv2
 import tensorflow as tf
 from datetime import datetime
 
 class ChessPositionAnalyzer:
-    def __init__(self, model_path="chess_piece_model.keras", classes_path="classes.txt"):
-        self.model_path = model_path
-        self.classes_path = classes_path
+    def __init__(self, model_path=None, classes_path=None):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.model_path = model_path if model_path else os.path.join(base_dir, "chess_piece_model.keras")
+        self.classes_path = classes_path if classes_path else os.path.join(base_dir, "classes.txt")
+        self.log_path = os.path.join(base_dir, "predictions.log")
         self.model = None
         self.class_names = None
         self.is_loaded = False
@@ -80,7 +83,7 @@ class ChessPositionAnalyzer:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
         try:
-            with open("predictions.log", "a", encoding="utf-8") as f:
+            with open(self.log_path, "a", encoding="utf-8") as f:
                 f.write(f"\n--- Prediction at [{timestamp}] ---\n")
                 for i, prob_vec in enumerate(predictions):
                     row, col = i // 8, i % 8
