@@ -23,7 +23,7 @@ This tool uses `pdf2image`, which requires **Poppler** to be installed on your s
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/chess-position-detector.git
+   git clone https://github.com/kopilka12/chess-position-detector.git
    cd chess-position-detector
    ```
 
