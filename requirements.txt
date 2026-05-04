@@ -3,3 +3,5 @@ opencv-python
 tensorflow
 pdf2image
 Pillow
+tqdm
+moviepy

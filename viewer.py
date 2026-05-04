@@ -28,6 +28,15 @@ class BoardViewer:
         
         cv2.imshow(window_name, canvas)
 
+    def draw_info(self, img, info_lines):
+        y_offset = 40
+        for line in info_lines:
+            (w, h), _ = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
+            cv2.rectangle(img, (15, y_offset - h - 5), (25 + w, y_offset + 5), (0, 0, 0), -1)
+            cv2.putText(img, line, (20, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+            y_offset += 35
+        return img
+
     def display_interactive(self, pages, detector, analyzer=None):
         current_page = 0
         total_pages = len(pages)
@@ -56,12 +65,7 @@ class BoardViewer:
                             fen = analyzer.predict_fen(warped, strict=False)
                             if fen: info_lines.append(f"Board {idx+1}: {fen}")
 
-                y_offset = 40
-                for line in info_lines:
-                    (w, h), _ = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
-                    cv2.rectangle(processed_img, (15, y_offset - h - 5), (25 + w, y_offset + 5), (0, 0, 0), -1)
-                    cv2.putText(processed_img, line, (20, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-                    y_offset += 35
+                self.draw_info(processed_img, info_lines)
                 last_page = current_page
 
             self._show_with_ratio(window_name, processed_img)
@@ -97,12 +101,7 @@ class BoardViewer:
                     for idx, fen in enumerate(fens):
                         info_lines.append(f"Board {idx+1}: {fen}")
 
-                y_offset = 40
-                for line in info_lines:
-                    (w, h), _ = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
-                    cv2.rectangle(processed_img, (15, y_offset - h - 5), (25 + w, y_offset + 5), (0, 0, 0), -1)
-                    cv2.putText(processed_img, line, (20, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-                    y_offset += 35
+                self.draw_info(processed_img, info_lines)
                 last_idx = current_idx
 
             self._show_with_ratio(window_name, processed_img)

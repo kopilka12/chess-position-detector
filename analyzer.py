@@ -71,7 +71,7 @@ class ChessPositionAnalyzer:
             min_conf = np.min(confidences)
             
             if min_conf < threshold:
-                print(f"Low confidence detected: {min_conf:.4f}")
+                print(f"\nLow confidence detected: {min_conf:.4f}")
                 return "intermediate"
             
         class_indices = np.argmax(predictions, axis=1)

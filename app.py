@@ -1,21 +1,23 @@
 import os
 import cv2
 import numpy as np
+from tqdm import tqdm
 from utils import load_document, warp_board
 from detector import ChessboardDetector
 from analyzer import ChessPositionAnalyzer
 from viewer import BoardViewer
 
 class ChessApp:
-    def __init__(self, file_path, show=False, split=False, generate_txt=None):
+    def __init__(self, file_path, show=False, save_video=False, split=False, generate_txt=None):
         self.file_path = os.path.abspath(file_path)
         self.show = show
+        self.save_video = save_video
         self.split = split
         self.generate_txt = os.path.abspath(generate_txt) if generate_txt else None
         
         self.detector = ChessboardDetector()
-        self.analyzer = ChessPositionAnalyzer() if (generate_txt or show) else None
-        self.viewer = BoardViewer() if show else None
+        self.analyzer = ChessPositionAnalyzer() if (generate_txt or show or save_video) else None
+        self.viewer = BoardViewer() if (show or save_video) else None
         
         self.last_fens = None
 
@@ -79,11 +81,26 @@ class ChessApp:
             print(f"Error: Could not open video {self.file_path}")
             return
 
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        pbar = tqdm(total=total_frames, unit="frame", desc="Processing Video")
+
+        out = None
+        if self.save_video:
+            base, ext = os.path.splitext(self.file_path)
+            output_path = f"{base}_positions{ext}"
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+
         interval_frames = 1
 
-        if (self.generate_txt or self.show) and self.analyzer:
+        if (self.generate_txt or self.show or self.save_video) and self.analyzer:
             if not self.analyzer.load_resources():
                 cap.release()
+                if out: out.release()
+                pbar.close()
                 return
             if self.generate_txt:
                 with open(self.generate_txt, "w", encoding="utf-8") as f:
@@ -91,6 +108,8 @@ class ChessApp:
 
         frames_to_show = []
         frame_count = 0
+        current_fens = []
+
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -103,20 +122,90 @@ class ChessApp:
                 boards = self.detector.detect_boards(frame)
                 if boards:
                     is_changed = True
-                    current_fens = []
                     if self.analyzer:
                         is_changed, current_fens = self._analyze_and_save_video_data(frame, boards, timestamp_str, output_filename=self.generate_txt)
                         if is_changed:
-                            print(f"[{timestamp_str}] Position changed. Saved." if self.generate_txt else f"[{timestamp_str}] Position changed.")
+                            pbar.write(f"[{timestamp_str}] Position changed. Saved." if self.generate_txt else f"[{timestamp_str}] Position changed.")
                     
                     if self.show and is_changed:
                         frames_to_show.append((frame.copy(), timestamp_str, current_fens))
                 else:
                     self.last_fens = None
+                    current_fens = []
+
+                if self.save_video:
+                    processed_frame = self.detector.draw_boards(frame, boards)
+                    info_lines = [f"Time: [{timestamp_str}] | Boards: {len(boards)}"]
+                    for idx, fen in enumerate(current_fens):
+                        info_lines.append(f"Board {idx+1}: {fen}")
+                    
+                    self.viewer.draw_info(processed_frame, info_lines)
+                    out.write(processed_frame)
 
             frame_count += 1
+            pbar.update(1)
 
         cap.release()
+        if out: out.release()
+        pbar.close()
+
+        if self.save_video:
+            video_clip = None
+            original_clip = None
+            final_clip = None
+            temp_output = output_path.replace("_positions", "_positions_temp")
+            
+            try:
+                try:
+                    from moviepy.editor import VideoFileClip
+                except ImportError:
+                    from moviepy import VideoFileClip
+                
+                print("Adding audio to the processed video...")
+                
+                if os.path.exists(temp_output):
+                    os.remove(temp_output)
+                    
+                os.rename(output_path, temp_output)
+                
+                video_clip = VideoFileClip(temp_output)
+                original_clip = VideoFileClip(self.file_path)
+                
+                if original_clip.audio is not None:
+                    # MoviePy 2.0 uses with_audio instead of set_audio
+                    if hasattr(video_clip, 'with_audio'):
+                        final_clip = video_clip.with_audio(original_clip.audio)
+                    else:
+                        final_clip = video_clip.set_audio(original_clip.audio)
+                        
+                    final_clip.write_videofile(output_path, codec="libx264", logger=None)
+                else:
+                    print("Original video has no audio.")
+                    video_clip.close()
+                    video_clip = None # Set to None so finally doesn't close it again
+                    os.rename(temp_output, output_path)
+
+            except Exception as e:
+                print(f"Warning: Could not add audio to the video. {e}")
+            finally:
+                if video_clip: video_clip.close()
+                if original_clip: original_clip.close()
+                if final_clip: final_clip.close()
+                
+                if os.path.exists(temp_output):
+                    if not os.path.exists(output_path):
+                        try:
+                            os.rename(temp_output, output_path)
+                        except Exception as e:
+                            print(f"Error restoring video from temp: {e}")
+                    else:
+                        try:
+                            os.remove(temp_output)
+                        except Exception as e:
+                            print(f"Note: Could not remove temp file {temp_output}: {e}")
+
+            print(f"Processed video saved as: {output_path}")
+
         if self.generate_txt:
             print(f"Data saved in '{self.generate_txt}'!")
             
