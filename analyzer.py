@@ -33,7 +33,7 @@ class ChessPositionAnalyzer:
             print(f"Model loading error: {e}")
             return False
 
-    def predict_fen(self, warped_board, timestamp=None, strict=True):
+    def predict_fen(self, warped_board, timestamp=None, strict=True, return_heatmap=False):
         if not self.is_loaded and not self.load_resources(): return None
 
         # 1. Preprocess the whole board
@@ -60,10 +60,17 @@ class ChessPositionAnalyzer:
                 # Only print if it's likely a moving piece or very low confidence
                 if min_conf < 0.95:
                     print(f"Low confidence at {cell_name}: {min_conf:.4f}")
+                
+                if return_heatmap:
+                    return "intermediate", final_heatmap
                 return "intermediate"
             
         class_indices = np.argmax(final_heatmap, axis=-1)
-        return self._get_fen_from_matrix(class_indices)
+        fen = self._get_fen_from_matrix(class_indices)
+        
+        if return_heatmap:
+            return fen, final_heatmap
+        return fen
 
     def _log_predictions_heatmap(self, heatmap, timestamp=None):
         if timestamp is None: timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

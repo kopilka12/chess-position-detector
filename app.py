@@ -8,16 +8,17 @@ from analyzer import ChessPositionAnalyzer
 from viewer import BoardViewer
 
 class ChessApp:
-    def __init__(self, file_path, show=False, save_video=False, split=False, generate_txt=None):
+    def __init__(self, file_path, show=False, show_heatmap=False, save_video=False, split=False, generate_txt=None):
         self.file_path = os.path.abspath(file_path)
         self.show = show
+        self.show_heatmap = show_heatmap
         self.save_video = save_video
         self.split = split
         self.generate_txt = os.path.abspath(generate_txt) if generate_txt else None
         
         self.detector = ChessboardDetector()
-        self.analyzer = ChessPositionAnalyzer() if (generate_txt or show or save_video) else None
-        self.viewer = BoardViewer() if (show or save_video) else None
+        self.analyzer = ChessPositionAnalyzer() if (generate_txt or show or save_video or show_heatmap) else None
+        self.viewer = BoardViewer() if (show or save_video or show_heatmap) else None
         
         self.last_fens = None
 
@@ -72,7 +73,7 @@ class ChessApp:
             print(f"Data saved in '{self.generate_txt}'!")
 
         if self.show and self.viewer:
-            self.viewer.display_interactive(pages_cv, self.detector, self.analyzer)
+            self.viewer.display_interactive(pages_cv, self.detector, self.analyzer, show_heatmap=self.show_heatmap)
 
     def _process_video(self):
         print(f"Processing video: {self.file_path}...")
@@ -121,14 +122,18 @@ class ChessApp:
                 
                 boards = self.detector.detect_boards(frame)
                 if boards:
-                    is_changed = True
                     if self.analyzer:
                         is_changed, current_fens = self._analyze_and_save_video_data(frame, boards, timestamp_str, output_filename=self.generate_txt)
+                        
                         if is_changed:
                             pbar.write(f"[{timestamp_str}] Position changed. Saved." if self.generate_txt else f"[{timestamp_str}] Position changed.")
-                    
-                    if self.show and is_changed:
-                        frames_to_show.append((frame.copy(), timestamp_str, current_fens))
+                            
+                            if self.show_heatmap:
+                                # Get heatmap for the first board
+                                _, heatmap = self.analyzer.predict_fen(warp_board(frame, boards[0]), strict=False, return_heatmap=True)
+                                frames_to_show.append((frame.copy(), timestamp_str, current_fens, heatmap))
+                            elif self.show:
+                                frames_to_show.append((frame.copy(), timestamp_str, current_fens))
                 else:
                     self.last_fens = None
                     current_fens = []
@@ -210,7 +215,7 @@ class ChessApp:
             print(f"Data saved in '{self.generate_txt}'!")
             
         if self.show and self.viewer and frames_to_show:
-            self.viewer.display_video_frames(frames_to_show, self.detector)
+            self.viewer.display_video_frames(frames_to_show, self.detector, self.analyzer)
             frames_to_show.clear()
         elif self.show and not frames_to_show:
             print("No boards detected in the video to show.")
