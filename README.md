@@ -23,7 +23,7 @@ This tool uses `pdf2image`, which requires **Poppler** to be installed on your s
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/chess-position-detector.git
+   git clone https://github.com/kopilka12/chess-position-detector.git
    cd chess-position-detector
    ```
 
@@ -46,7 +46,7 @@ python main.py path/to/your/file.jpg
 | Flag | Description |
 |------|-------------|
 | `--show` | Show interactive visualization of detected boards. |
-| `--txt` | Analyze positions and save FEN data to `boards_data.txt`. |
+| `--txt` | Analyze positions and save FEN data to a file. Defaults to `boards_data.txt` if no filename is provided. Example: `--txt custom_output.txt` |
 | `--split` | Cut detected boards into 64 squares and save them in the `/split` folder. |
 
 ### Examples
@@ -65,14 +65,3 @@ python main.py videos/gameplay.mp4 --show
 ```bash
 python main.py photo.png --split
 ```
-
-## Project Structure
-
-- `main.py`: Entry point for the CLI application.
-- `app.py`: Main application logic and orchestration.
-- `detector.py`: Chessboard detection algorithms (OpenCV).
-- `analyzer.py`: FEN prediction logic using the Keras model.
-- `viewer.py`: Visualization and interaction tools.
-- `utils.py`: Image processing and PDF loading utilities.
-- `chess_piece_model.keras`: Pre-trained deep learning model for piece classification.
-- `classes.txt`: Label mapping for the piece classifier.

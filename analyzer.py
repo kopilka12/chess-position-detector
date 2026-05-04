@@ -1,13 +1,15 @@
+import os
 import numpy as np
 import cv2
 import tensorflow as tf
 from datetime import datetime
-import os
 
 class ChessPositionAnalyzer:
-    def __init__(self, model_path="chess_fcn_2x2.keras", classes_path="classes.txt"):
-        self.model_path = model_path
-        self.classes_path = classes_path
+    def __init__(self, model_path=None, classes_path=None):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.model_path = model_path if model_path else os.path.join(base_dir, "chess_fcn_2x2.keras")
+        self.classes_path = classes_path if classes_path else os.path.join(base_dir, "classes.txt")
+        self.log_path = os.path.join(base_dir, "predictions.log")
         self.model = None
         self.class_names = None
         self.is_loaded = False
@@ -66,8 +68,8 @@ class ChessPositionAnalyzer:
     def _log_predictions_heatmap(self, heatmap, timestamp=None):
         if timestamp is None: timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         try:
-            with open("predictions.log", "a", encoding="utf-8") as f:
-                f.write(f"\n--- Sliding Window 2x2 Prediction at [{timestamp}] ---\n")
+            with open(self.log_path, "a", encoding="utf-8") as f:
+                f.write(f"\n--- FCN Heatmap Prediction at [{timestamp}] ---\n")
                 for r in range(8):
                     for c in range(8):
                         prob_vec = heatmap[r, c]
@@ -76,7 +78,8 @@ class ChessPositionAnalyzer:
                             cell_name = f"{chr(ord('a')+c)}{8-r}"
                             probs_str = ", ".join([f"{self.class_names[j]}: {prob_vec[j]:.2f}" for j in range(len(self.class_names)) if prob_vec[j] > 0.1])
                             f.write(f"Cell {cell_name}: {probs_str}\n")
-        except: pass
+        except Exception as e:
+            print(f"Logging error: {e}")
 
     def _get_fen_from_matrix(self, matrix):
         fen_rows = []
