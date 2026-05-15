@@ -8,17 +8,18 @@ from analyzer import ChessPositionAnalyzer
 from viewer import BoardViewer
 
 class ChessApp:
-    def __init__(self, file_path, show=False, show_heatmap=False, save_video=False, split=False, generate_txt=None):
+    def __init__(self, file_path, show=False, show_heatmap=False, effects=False, save_video=False, split=False, generate_txt=None):
         self.file_path = os.path.abspath(file_path)
         self.show = show
         self.show_heatmap = show_heatmap
+        self.effects = effects
         self.save_video = save_video
         self.split = split
         self.generate_txt = os.path.abspath(generate_txt) if generate_txt else None
         
         self.detector = ChessboardDetector()
         self.analyzer = ChessPositionAnalyzer() if (generate_txt or show or save_video or show_heatmap) else None
-        self.viewer = BoardViewer() if (show or save_video or show_heatmap) else None
+        self.viewer = BoardViewer(effects=self.effects) if (show or save_video or show_heatmap) else None
         
         self.last_fens = None
 
@@ -97,7 +98,7 @@ class ChessApp:
 
         interval_frames = 1
 
-        if (self.generate_txt or self.show or self.save_video) and self.analyzer:
+        if (self.generate_txt or self.show or self.show_heatmap or self.save_video) and self.analyzer:
             if not self.analyzer.load_resources():
                 cap.release()
                 if out: out.release()
@@ -110,6 +111,7 @@ class ChessApp:
         frames_to_show = []
         frame_count = 0
         current_fens = []
+        prev_fens = None
 
         while True:
             ret, frame = cap.read()
@@ -128,15 +130,25 @@ class ChessApp:
                         if is_changed:
                             pbar.write(f"[{timestamp_str}] Position changed. Saved." if self.generate_txt else f"[{timestamp_str}] Position changed.")
                             
-                            if self.show_heatmap:
-                                # Get heatmap for the first board
-                                _, heatmap = self.analyzer.predict_fen(warp_board(frame, boards[0]), strict=False, return_heatmap=True)
-                                frames_to_show.append((frame.copy(), timestamp_str, current_fens, heatmap))
-                            elif self.show:
-                                frames_to_show.append((frame.copy(), timestamp_str, current_fens))
+                            # Skip intermediate positions in visualization if effects are on
+                            is_intermediate = any(f == "intermediate" for f in current_fens)
+                            if self.effects and is_intermediate:
+                                # We don't add to frames_to_show, but we might want to keep last_fens updated
+                                # to detect the REAL next move.
+                                pass 
+                            else:
+                                if self.show_heatmap:
+                                    # Get heatmap for the first board
+                                    _, heatmap = self.analyzer.predict_fen(warp_board(frame, boards[0]), strict=False, return_heatmap=True)
+                                    frames_to_show.append((frame.copy(), timestamp_str, prev_fens, current_fens, heatmap))
+                                elif self.show:
+                                    frames_to_show.append((frame.copy(), timestamp_str, prev_fens, current_fens))
+                                
+                                prev_fens = current_fens.copy()
                 else:
                     self.last_fens = None
                     current_fens = []
+                    prev_fens = None
 
                 if self.save_video:
                     processed_frame = self.detector.draw_boards(frame, boards)

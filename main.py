@@ -14,6 +14,7 @@ def main():
     group.add_argument('--showheatmap', action='store_true', help='Show heatmap visualization')
     
     parser.add_argument('--video', action='store_true', help='Save processed video with overlays')
+    parser.add_argument('--effects', action='store_true', help='Show shiny sparks animation on move (requires --show and video input)')
     parser.add_argument('--split', action='store_true', help='Cut the detected boards into squares and save them in the split folder')
     parser.add_argument('--txt', nargs='?', const='boards_data.txt', help='Save detected board data to a file (optional: specify path/filename)')
     args = parser.parse_args()
@@ -22,6 +23,7 @@ def main():
         file_path=args.path,
         show=args.show or args.showheatmap,
         show_heatmap=args.showheatmap,
+        effects=args.effects,
         save_video=args.video,
         split=args.split,
         generate_txt=args.txt

@@ -65,3 +65,60 @@ def load_document(file_path):
         pages_cv.append(img)
         
     return pages_cv
+
+def fen_to_matrix(fen):
+    """Converts the board part of a FEN string to an 8x8 matrix."""
+    if not fen or fen == "intermediate":
+        return None
+        
+    # Standard FEN can have multiple parts (board, turn, castling, etc.)
+    # Our analyzer seems to return just the board part: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+    board_part = fen.split(' ')[0]
+    rows = board_part.split('/')
+    matrix = []
+    
+    for row in rows:
+        matrix_row = []
+        for char in row:
+            if char.isdigit():
+                matrix_row.extend(['.'] * int(char))
+            else:
+                matrix_row.append(char)
+        matrix.append(matrix_row)
+    
+    return matrix if len(matrix) == 8 else None
+
+def get_move_from_fens(fen1, fen2):
+    """Compares two FENs and returns ((r1, c1), (r2, c2)) for the most likely move."""
+    m1 = fen_to_matrix(fen1)
+    m2 = fen_to_matrix(fen2)
+    
+    if m1 is None or m2 is None:
+        return None
+        
+    diffs = []
+    for r in range(8):
+        for c in range(8):
+            if m1[r][c] != m2[r][c]:
+                diffs.append((r, c))
+                
+    if not diffs:
+        return None
+        
+    # Heuristic for a move: 
+    # start_square: was piece, now empty ('.')
+    # end_square: was something else, now a piece (or different piece)
+    start_candidates = [d for d in diffs if m2[d[0]][d[1]] == '.']
+    end_candidates = [d for d in diffs if m2[d[0]][d[1]] != '.']
+    
+    if start_candidates and end_candidates:
+        # If there are multiple, try to find the one that matches piece type (simplified)
+        # For now, just take the first ones
+        return (start_candidates[0], end_candidates[0])
+        
+    # If it's a capture and only piece change is detected (shouldn't happen with FEN)
+    # or other edge cases, just return the first two differences
+    if len(diffs) >= 2:
+        return (diffs[0], diffs[1])
+        
+    return None

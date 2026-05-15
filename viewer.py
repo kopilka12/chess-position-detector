@@ -1,11 +1,13 @@
 import cv2
 import numpy as np
-from utils import warp_board
+import random
+from utils import warp_board, get_move_from_fens
 
 class BoardViewer:
-    def __init__(self, max_w=1640, max_h=760):
+    def __init__(self, max_w=1640, max_h=760, effects=False):
         self.max_w = max_w
         self.max_h = max_h
+        self.effects = effects
 
     def _show_with_ratio(self, window_name, img):
         rect = cv2.getWindowImageRect(window_name)
@@ -151,6 +153,91 @@ class BoardViewer:
 
         cv2.destroyAllWindows()
 
+    def _draw_sparks_animation(self, window_name, base_img, board, start_cell, end_cell):
+        """Draws a shiny particle animation from start_cell to end_cell."""
+        x, y, w, h = cv2.boundingRect(board)
+        
+        # Calculate pixel centers for start and end cells
+        def get_cell_center(cell):
+            r, c = cell
+            cx = x + (c * w / 8) + (w / 16)
+            cy = y + (r * h / 8) + (h / 16)
+            return np.array([cx, cy])
+
+        start_pt = get_cell_center(start_cell)
+        end_pt = get_cell_center(end_cell)
+        vector = end_pt - start_pt
+        distance = np.linalg.norm(vector)
+        
+        if distance == 0: return
+
+        steps = 25  # Number of animation frames
+        particles = []
+        
+        for i in range(steps):
+            # Progress from 0.0 to 1.0
+            progress = i / (steps - 1)
+            current_pos = start_pt + vector * progress
+            
+            # Create new particles at current position
+            for _ in range(5):
+                particle = {
+                    'pos': current_pos.copy(),
+                    'vel': np.array([random.uniform(-2, 2), random.uniform(-2, 2)]),
+                    'life': 1.0,
+                    'color': (0, random.randint(150, 255), 255) # Yellow/Orange
+                }
+                particles.append(particle)
+            
+            # Create a copy of the base image for this animation frame
+            frame_img = base_img.copy()
+            
+            # Update and draw particles
+            new_particles = []
+            for p in particles:
+                p['pos'] += p['vel']
+                p['life'] -= 0.05
+                if p['life'] > 0:
+                    alpha = p['life']
+                    # Main spark (white core)
+                    cv2.circle(frame_img, tuple(p['pos'].astype(int)), int(5 * alpha), (255, 255, 255), -1)
+                    # Glow (colored halo)
+                    cv2.circle(frame_img, tuple(p['pos'].astype(int)), int(12 * alpha), p['color'], 2)
+                    new_particles.append(p)
+            particles = new_particles
+            
+            # Show the animation frame
+            self._show_with_ratio(window_name, frame_img)
+            if cv2.waitKey(20) == 27: return # Allow ESC to skip animation
+
+        # --- EXPLOSION PHASE ---
+        explosion_particles = []
+        for _ in range(30):
+            angle = random.uniform(0, 2 * np.pi)
+            speed = random.uniform(2, 8)
+            explosion_particles.append({
+                'pos': end_pt.copy(),
+                'vel': np.array([np.cos(angle) * speed, np.sin(angle) * speed]),
+                'life': 1.0,
+                'color': (0, random.randint(100, 255), 255)
+            })
+
+        for i in range(15):
+            frame_img = base_img.copy()
+            new_particles = []
+            for p in explosion_particles:
+                p['pos'] += p['vel']
+                p['life'] -= 0.07
+                if p['life'] > 0:
+                    alpha = p['life']
+                    cv2.circle(frame_img, tuple(p['pos'].astype(int)), int(6 * alpha), (255, 255, 255), -1)
+                    cv2.circle(frame_img, tuple(p['pos'].astype(int)), int(15 * alpha), p['color'], 2)
+                    new_particles.append(p)
+            explosion_particles = new_particles
+            
+            self._show_with_ratio(window_name, frame_img)
+            if cv2.waitKey(20) == 27: break
+
     def display_video_frames(self, frames_with_info, detector, analyzer=None):
         current_idx = 0
         total_frames = len(frames_with_info)
@@ -165,8 +252,9 @@ class BoardViewer:
                 frame_data = frames_with_info[current_idx]
                 frame = frame_data[0]
                 timestamp = frame_data[1]
-                fens = frame_data[2]
-                heatmap = frame_data[3] if len(frame_data) > 3 else None
+                prev_fens = frame_data[2]
+                fens = frame_data[3]
+                heatmap = frame_data[4] if len(frame_data) > 4 else None
                 
                 img = frame.copy()
                 boards = detector.detect_boards(img)
@@ -192,6 +280,12 @@ class BoardViewer:
                     processed_img = combined
                 else:
                     processed_img = board_img
+                
+                # Play animation if effects are on and we moved forward
+                if self.effects and current_idx > last_idx and prev_fens and fens and boards:
+                    move = get_move_from_fens(prev_fens[0], fens[0])
+                    if move:
+                        self._draw_sparks_animation(window_name, processed_img, boards[0], move[0], move[1])
                     
                 last_idx = current_idx
 
