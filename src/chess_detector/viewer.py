@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import random
-from utils import warp_board, get_move_from_fens
+from .utils import warp_board, get_move_from_fens
 
 class BoardViewer:
     def __init__(self, max_w=1640, max_h=760, effects=False):

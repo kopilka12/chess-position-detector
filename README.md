@@ -19,7 +19,9 @@ This tool uses `pdf2image`, which requires **Poppler** to be installed on your s
 - **Linux:** `sudo apt-get install poppler-utils`
 - **macOS:** `brew install poppler`
 
-## Installation
+## Installation (Recommended)
+
+This project is now a standardized Python package. To install it:
 
 1. **Clone the repository:**
    ```bash
@@ -27,41 +29,48 @@ This tool uses `pdf2image`, which requires **Poppler** to be installed on your s
    cd chess-position-detector
    ```
 
-2. **Install dependencies:**
+2. **Create and activate a virtual environment:**
    ```bash
-   pip install -r requirements.txt
+   python -m venv .venv
+   # Windows:
+   .venv\Scripts\activate
+   # Linux/macOS:
+   source .venv/bin/activate
    ```
-   *Note: Ensure you have `tensorflow`, `opencv-python`, `numpy`, and `pdf2image` installed.*
+
+3. **Install the project in editable mode:**
+   ```bash
+   pip install -e .
+   ```
+   *Note: This will automatically install all dependencies like `tensorflow`, `opencv-python`, etc.*
 
 ## Usage
 
-Run the tool via `main.py` with various flags depending on your needs:
+After installation, you can run the tool from anywhere in your terminal using the `chess-position-detector` command:
 
 ### Basic Command
 ```bash
-python main.py path/to/your/file.jpg
+chess-position-detector path/to/your/file.jpg
 ```
 
 ### Flags
 | Flag | Description |
 |------|-------------|
 | `--show` | Show interactive visualization of detected boards. |
-| `--txt` | Analyze positions and save FEN data to a file. Defaults to `boards_data.txt` if no filename is provided. Example: `--txt custom_output.txt` |
+| `--showheatmap` | Show heatmap of piece detections. |
+| `--txt` | Analyze positions and save FEN data to a file. Example: `--txt custom_output.txt` |
 | `--split` | Cut detected boards into 64 squares and save them in the `/split` folder. |
+| `--video` | Save processed video with overlays. |
+| `--effects` | Show shiny sparks animation on move (requires `--show` or `--video`). |
 
 ### Examples
 
 **1. Analyze a PDF and save FEN strings:**
 ```bash
-python main.py documents/chess_book.pdf --txt
+chess-position-detector documents/chess_book.pdf --txt
 ```
 
-**2. Visualize detections in a video:**
+**2. Visualize detections in a video with effects:**
 ```bash
-python main.py videos/gameplay.mp4 --show
-```
-
-**3. Generate training data from an image:**
-```bash
-python main.py photo.png --split
+chess-position-detector videos/gameplay.mp4 --show --effects
 ```

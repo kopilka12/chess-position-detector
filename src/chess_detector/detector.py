@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from utils import angle_cos
+from .utils import angle_cos
 
 class ChessboardDetector:
     def __init__(self, min_area=1000):
