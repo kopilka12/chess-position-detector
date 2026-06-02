@@ -37,7 +37,7 @@ A computer vision tool designed to detect chessboards and analyze piece position
 You can install the project directly from GitHub using the following command:
 
 ```bash
-pip install git+https://github.com/kopilka12/chess-position-detector.git
+pip install git+https://github.com/kopilka12/chess-position-detector.git@2x2
 ```
 
 ## Usage
