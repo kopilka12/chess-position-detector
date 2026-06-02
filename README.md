@@ -31,8 +31,6 @@ A computer vision tool designed to detect chessboards and analyze piece position
   - **Poppler**: Required by `pdf2image` for PDF processing.
     - *Ubuntu/Debian*: `sudo apt install poppler-utils`
     - *Windows*: Download from [poppler for Windows](https://github.com/oschwartz10612/poppler-windows/releases/) and add `bin` to PATH.
-  - **OpenGL**: Required by OpenCV GUI.
-    - *Ubuntu*: `sudo apt install libgl1-mesa-glx`
 
 ## Installation
 
