@@ -2,7 +2,7 @@ import os
 import cv2
 import numpy as np
 from tqdm import tqdm
-from utils import load_document, warp_board
+from utils import load_document, warp_board, get_move_from_fens
 from detector import ChessboardDetector
 from analyzer import ChessPositionAnalyzer
 from viewer import BoardViewer
@@ -137,6 +137,18 @@ class ChessApp:
                                 # to detect the REAL next move.
                                 pass 
                             else:
+                                if self.save_video and self.effects and prev_fens and boards:
+                                    move = get_move_from_fens(prev_fens[0], current_fens[0])
+                                    if move:
+                                        anim_base_frame = self.detector.draw_boards(frame.copy(), boards)
+                                        info_lines = [f"Time: [{timestamp_str}] | Boards: {len(boards)}"]
+                                        for idx, fen in enumerate(current_fens):
+                                            info_lines.append(f"Board {idx+1}: {fen}")
+                                        self.viewer.draw_info(anim_base_frame, info_lines)
+                                        
+                                        for effect_frame in self.viewer.get_sparks_frames(anim_base_frame, boards[0], move[0], move[1]):
+                                            out.write(effect_frame)
+
                                 if self.show_heatmap:
                                     # Get heatmap for the first board
                                     _, heatmap = self.analyzer.predict_fen(warp_board(frame, boards[0]), strict=False, return_heatmap=True)

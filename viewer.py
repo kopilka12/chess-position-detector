@@ -153,8 +153,8 @@ class BoardViewer:
 
         cv2.destroyAllWindows()
 
-    def _draw_sparks_animation(self, window_name, base_img, board, start_cell, end_cell):
-        """Draws a shiny particle animation from start_cell to end_cell."""
+    def get_sparks_frames(self, base_img, board, start_cell, end_cell):
+        """Generates shiny particle animation frames from start_cell to end_cell."""
         x, y, w, h = cv2.boundingRect(board)
         
         # Calculate pixel centers for start and end cells
@@ -206,9 +206,7 @@ class BoardViewer:
                     new_particles.append(p)
             particles = new_particles
             
-            # Show the animation frame
-            self._show_with_ratio(window_name, frame_img)
-            if cv2.waitKey(20) == 27: return # Allow ESC to skip animation
+            yield frame_img
 
         # --- EXPLOSION PHASE ---
         explosion_particles = []
@@ -235,6 +233,11 @@ class BoardViewer:
                     new_particles.append(p)
             explosion_particles = new_particles
             
+            yield frame_img
+
+    def _draw_sparks_animation(self, window_name, base_img, board, start_cell, end_cell):
+        """Draws a shiny particle animation from start_cell to end_cell."""
+        for frame_img in self.get_sparks_frames(base_img, board, start_cell, end_cell):
             self._show_with_ratio(window_name, frame_img)
             if cv2.waitKey(20) == 27: break
 
