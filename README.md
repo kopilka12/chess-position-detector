@@ -1,76 +1,78 @@
-# Chessboard Detection and Analysis Tool
+# Chess Position Detector
 
-Сomputer vision tool designed to detect chessboards in images, PDFs, and videos, analyze the piece positions, and generate FEN.
+A powerful computer vision tool designed to detect chessboards and analyze piece positions from images, PDFs, and video files. It uses deep learning to generate FEN (Forsyth-Edwards Notation) strings representing the board state.
 
-## Tech Stack
+## Features
 
-- **Language:** Python 3.10+
-- **Computer Vision:** OpenCV (`opencv-python`)
-- **Deep Learning:** TensorFlow / Keras
-- **PDF Processing:** `pdf2image` (requires Poppler)
-- **Data Handling:** NumPy
+- **Multi-format Support**: Process single images, multi-page PDF documents, and video files.
+- **Board Detection**: Automatically locates one or more chessboards within a frame.
+- **Position Analysis**: Uses a custom Convolutional Neural Network (FCN) to recognize pieces and empty squares.
+- **Visualization**: 
+  - Interactive viewer for images and PDFs.
+  - Heatmap generation for piece detection confidence.
+  - Real-time video overlay with move animations (shiny sparks!).
+- **Data Export**: Save detected positions to text files or split boards into individual square images for dataset creation.
+- **Headless Support**: Gracefully handles execution on servers without a graphical display.
 
-## Prerequisites
+## Technologies & Libraries
 
-### Poppler (for PDF support)
-This tool uses `pdf2image`, which requires **Poppler** to be installed on your system.
+- **Python**: Core programming language.
+- **OpenCV (`opencv-python`)**: Primary library for image processing, board detection (contour analysis), and video manipulation.
+- **TensorFlow**: Powers the Deep Learning model used for piece classification.
+- **NumPy**: Efficient numerical operations for image matrices and coordinate transformations.
+- **pdf2image & Pillow**: Used to convert PDF pages into processable image formats.
+- **tqdm**: Provides progress bars for long-running video processing tasks.
+- **MoviePy**: Handles video post-processing, such as adding audio back to analyzed videos.
 
-- **Windows:** Download the latest binary from [poppler-windows](https://github.com/oschwartz10612/poppler-windows/releases) and add the `bin` folder to your System PATH.
-- **Linux:** `sudo apt-get install poppler-utils`
-- **macOS:** `brew install poppler`
+## Requirements
 
-## Installation (Recommended)
+- **Python 3.10 or higher**
+- **System Dependencies**:
+  - **Poppler**: Required by `pdf2image` for PDF processing.
+    - *Ubuntu/Debian*: `sudo apt install poppler-utils`
+    - *Windows*: Download from [poppler for Windows](https://github.com/oschwartz10612/poppler-windows/releases/) and add `bin` to PATH.
+  - **OpenGL**: Required by OpenCV GUI.
+    - *Ubuntu*: `sudo apt install libgl1-mesa-glx`
 
-This project is now a standardized Python package. To install it:
+## Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/kopilka12/chess-position-detector.git
-   cd chess-position-detector
-   ```
+You can install the project directly from GitHub using the following command:
 
-2. **Create and activate a virtual environment:**
-   ```bash
-   python -m venv .venv
-   # Windows:
-   .venv\Scripts\activate
-   # Linux/macOS:
-   source .venv/bin/activate
-   ```
-
-3. **Install the project in editable mode:**
-   ```bash
-   pip install -e .
-   ```
-   *Note: This will automatically install all dependencies like `tensorflow`, `opencv-python`, etc.*
+```bash
+pip install git+https://github.com/kopilka12/chess-position-detector.git
+```
 
 ## Usage
 
-After installation, you can run the tool from anywhere in your terminal using the `chess-position-detector` command:
+After installation, the tool is available via the `chess-position-detector` command.
 
-### Basic Command
+### Basic Analysis
 ```bash
-chess-position-detector path/to/your/file.jpg
+# Analyze an image and save results to a text file
+chess-position-detector path/to/image.png --txt
 ```
 
-### Flags
-| Flag | Description |
-|------|-------------|
-| `--show` | Show interactive visualization of detected boards. |
-| `--showheatmap` | Show heatmap of piece detections. |
-| `--txt` | Analyze positions and save FEN data to a file. Example: `--txt custom_output.txt` |
-| `--split` | Cut detected boards into 64 squares and save them in the `/split` folder. |
-| `--video` | Save processed video with overlays. |
-| `--effects` | Show shiny sparks animation on move (requires `--show` or `--video`). |
-
-### Examples
-
-**1. Analyze a PDF and save FEN strings:**
+### Visualization
 ```bash
-chess-position-detector documents/chess_book.pdf --txt
+# Show interactive board detection on a PDF
+chess-position-detector document.pdf --show
+
+# Show piece detection confidence heatmap
+chess-position-detector board.jpg --showheatmap
 ```
 
-**2. Visualize detections in a video with effects:**
+### Video Processing
 ```bash
-chess-position-detector videos/gameplay.mp4 --show --effects
+# Process video, save with overlays and animations
+chess-position-detector game.mp4 --video --effects --show
 ```
+
+### Dataset Preparation
+```bash
+# Cut detected boards into 64 individual square images
+chess-position-detector page.png --split
+```
+
+## License
+
+This project is licensed under the MIT License.
