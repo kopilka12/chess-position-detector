@@ -1,6 +1,6 @@
 # Chess Position Detector
 
-A powerful computer vision tool designed to detect chessboards and analyze piece positions from images, PDFs, and video files. It uses deep learning to generate FEN (Forsyth-Edwards Notation) strings representing the board state.
+A computer vision tool designed to detect chessboards and analyze piece positions from images, PDFs, and video files. It uses deep learning to generate FEN (Forsyth-Edwards Notation) strings representing the board state.
 
 ## Features
 
@@ -31,8 +31,6 @@ A powerful computer vision tool designed to detect chessboards and analyze piece
   - **Poppler**: Required by `pdf2image` for PDF processing.
     - *Ubuntu/Debian*: `sudo apt install poppler-utils`
     - *Windows*: Download from [poppler for Windows](https://github.com/oschwartz10612/poppler-windows/releases/) and add `bin` to PATH.
-  - **OpenGL**: Required by OpenCV GUI.
-    - *Ubuntu*: `sudo apt install libgl1-mesa-glx`
 
 ## Installation
 
@@ -55,7 +53,6 @@ After installation, the tool is available via the `chess-position-detector` comm
 | `--showheatmap` | Show a confidence heatmap alongside the board detection. |
 | `--video` | Process a video file and save a new version with detection overlays. |
 | `--effects` | Enable shiny sparks animation on moves (use with `--video` and `--show`). |
-| `--split` | Crop detected boards into 64 square images and save them in the `split/` folder. |
 | `--txt [FILE]` | Export detected FEN positions to a text file (default: `boards_data.txt`). |
 
 ### Examples
@@ -69,7 +66,3 @@ chess-position-detector manual.pdf --txt results.txt
 ```bash
 chess-position-detector game.mp4 --video --effects --show
 ```
-
-## License
-
-This project is licensed under the MIT License.
