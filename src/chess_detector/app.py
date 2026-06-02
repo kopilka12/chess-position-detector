@@ -2,7 +2,7 @@ import os
 import cv2
 import numpy as np
 from tqdm import tqdm
-from .utils import load_document, warp_board, get_move_from_fens
+from .utils import load_document, warp_board, get_move_from_fens, check_display
 from .detector import ChessboardDetector
 from .analyzer import ChessPositionAnalyzer
 from .viewer import BoardViewer
@@ -10,6 +10,13 @@ from .viewer import BoardViewer
 class ChessApp:
     def __init__(self, file_path, show=False, show_heatmap=False, effects=False, save_video=False, split=False, generate_txt=None):
         self.file_path = os.path.abspath(file_path)
+        
+        # Check for display if show is requested
+        if (show or show_heatmap) and not check_display():
+            print("Warning: No graphical display detected. Disabling visualization.")
+            show = False
+            show_heatmap = False
+
         self.show = show
         self.show_heatmap = show_heatmap
         self.effects = effects

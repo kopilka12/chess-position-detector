@@ -18,6 +18,12 @@ def order_points(pts):
     rect[3] = pts[np.argmax(diff)]  
     return rect
 
+def check_display():
+    """Checks if a graphical display is available."""
+    if os.name == 'nt':
+        return True
+    return os.environ.get('DISPLAY') is not None or os.environ.get('WAYLAND_DISPLAY') is not None
+
 def warp_board(img, board):
     epsilon = 0.02 * cv2.arcLength(board, True)
     approx = cv2.approxPolyDP(board, epsilon, True)
