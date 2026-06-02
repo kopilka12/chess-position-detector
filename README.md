@@ -1,6 +1,6 @@
 # Chess Position Detector
 
-A powerful computer vision tool designed to detect chessboards and analyze piece positions from images, PDFs, and video files. It uses deep learning to generate FEN (Forsyth-Edwards Notation) strings representing the board state.
+A computer vision tool designed to detect chessboards and analyze piece positions from images, PDFs, and video files. It uses deep learning to generate FEN (Forsyth-Edwards Notation) strings representing the board state.
 
 ## Features
 
