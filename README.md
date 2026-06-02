@@ -1,6 +1,6 @@
 # Chess Position Detector
 
-A computer vision tool designed to detect chessboards and analyze piece positions from images, PDFs, and video files. It uses deep learning to generate FEN (Forsyth-Edwards Notation) strings representing the board state.
+A powerful computer vision tool designed to detect chessboards and analyze piece positions from images, PDFs, and video files. It uses deep learning to generate FEN (Forsyth-Edwards Notation) strings representing the board state.
 
 ## Features
 
@@ -31,10 +31,12 @@ A computer vision tool designed to detect chessboards and analyze piece position
   - **Poppler**: Required by `pdf2image` for PDF processing.
     - *Ubuntu/Debian*: `sudo apt install poppler-utils`
     - *Windows*: Download from [poppler for Windows](https://github.com/oschwartz10612/poppler-windows/releases/) and add `bin` to PATH.
+  - **OpenGL**: Required by OpenCV GUI.
+    - *Ubuntu*: `sudo apt install libgl1-mesa-glx`
 
 ## Installation
 
-You can install the project directly from GitHub using the following command:
+You can install the project directly from GitHub using the following command (recommended to use the `2x2` branch for latest updates):
 
 ```bash
 pip install git+https://github.com/kopilka12/chess-position-detector.git@2x2
@@ -44,31 +46,28 @@ pip install git+https://github.com/kopilka12/chess-position-detector.git@2x2
 
 After installation, the tool is available via the `chess-position-detector` command.
 
-### Basic Analysis
+### Command Line Arguments
+
+| Argument | Description |
+| :--- | :--- |
+| `path` | **Required.** Path to the input file (Image, PDF, or Video). |
+| `--show` | Launch an interactive viewer to see detected boards and positions. |
+| `--showheatmap` | Show a confidence heatmap alongside the board detection. |
+| `--video` | Process a video file and save a new version with detection overlays. |
+| `--effects` | Enable shiny sparks animation on moves (use with `--video` and `--show`). |
+| `--split` | Crop detected boards into 64 square images and save them in the `split/` folder. |
+| `--txt [FILE]` | Export detected FEN positions to a text file (default: `boards_data.txt`). |
+
+### Examples
+
+**1. Analyze a PDF and save data to a custom file:**
 ```bash
-# Analyze an image and save results to a text file
-chess-position-detector path/to/image.png --txt
+chess-position-detector manual.pdf --txt results.txt
 ```
 
-### Visualization
+**2. Process a video with effects and visual feedback:**
 ```bash
-# Show interactive board detection on a PDF
-chess-position-detector document.pdf --show
-
-# Show piece detection confidence heatmap
-chess-position-detector board.jpg --showheatmap
-```
-
-### Video Processing
-```bash
-# Process video, save with overlays and animations
 chess-position-detector game.mp4 --video --effects --show
-```
-
-### Dataset Preparation
-```bash
-# Cut detected boards into 64 individual square images
-chess-position-detector page.png --split
 ```
 
 ## License
